@@ -127,6 +127,12 @@ async function main() {
   console.log(`Student's score`, quizardStudentReceipt.events[0].args.score);
   console.log(`Student's time`, quizardStudentReceipt.events[0].args.time);
 
+  // Get Info
+  console.log(`Quizard Info`, await quizardContract.getBrief());
+
+  // Get Student's answers
+  console.log(`Student's answers`, await quizardContract.getAnswersByStudent(student.address));
+
   console.log(`[From Quizard] Is student attended the quiz?`, await quizardContract.isAttended(student.address));
   console.log(
     `[From QuizardManager] Is student attended the quiz?`,

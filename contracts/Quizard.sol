@@ -23,9 +23,21 @@ contract Quizard {
 
     SharedStructs.Question[] private _questions;
 
+    // Get data in batch
+    struct Info {
+        string name;
+        string description;
+        uint256 passingScore;
+        uint256 duration;
+        uint256 startTime;
+        uint256 endTime;
+        uint256 attendees;
+    }
+
     struct Score {
         address student;
         uint256 score;
+        uint256[] answers;
         uint256 time;
     }
 
@@ -34,6 +46,9 @@ contract Quizard {
 
     // For optimised query, so we don't have to loop through the _scores array
     mapping(address => uint256) private _scoresByStudent;
+
+    // For optimised query, so we don't have to loop through the _scores array
+    mapping(address => uint256[]) private _answersByStudent;
 
     // Record students that have already claimed the NFT
     mapping(address => bool) private _isClaimed;
@@ -82,6 +97,19 @@ contract Quizard {
 
             _questions.push(question);
         }
+    }
+
+    function getBrief() public view returns (Info memory) {
+        return
+            Info({
+                name: _name,
+                description: _description,
+                passingScore: _passingScore,
+                duration: _duration,
+                startTime: _startTime,
+                endTime: _endTime,
+                attendees: _scores.length
+            });
     }
 
     function getName() public view returns (string memory) {
@@ -179,6 +207,14 @@ contract Quizard {
         return _scoresByStudent[student];
     }
 
+    function getAnswersByStudent(address student)
+        public
+        view
+        returns (uint256[] memory)
+    {
+        return _answersByStudent[student];
+    }
+
     function isAttended(address student) public view returns (bool) {
         return _isAttended[student];
     }
@@ -200,8 +236,9 @@ contract Quizard {
         // calculate the score in terms of 100
         score = (score * 100) / _questions.length;
 
-        _scores.push(Score(msg.sender, score, block.timestamp));
+        _scores.push(Score(msg.sender, score, answers, block.timestamp));
         _scoresByStudent[msg.sender] = score;
+        _answersByStudent[msg.sender] = answers;
         _isAttended[msg.sender] = true;
 
         // Update Quizard Manager
